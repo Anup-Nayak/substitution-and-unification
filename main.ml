@@ -128,3 +128,20 @@ let () =
 *)
 
 
+let rec mirror (t : tree) : tree =
+  match t with
+  | V _ -> t  
+  | C { node; children } ->
+      let reversed_children = List.rev_map mirror children in
+      C { node; children = reversed_children }
+
+(*
+
+let vars_set = vars (mirror plus_timesonex_z)
+
+
+let () =
+  print_endline "Variables in the tree:";
+  List.iter (fun var -> print_endline var) vars_set
+
+*)
