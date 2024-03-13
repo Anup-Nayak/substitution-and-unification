@@ -177,21 +177,30 @@ let rec compose_substitutions (sub1 : substitution) (sub2 : substitution) : subs
         (var, subst tree1 sub2) :: compose_substitutions rest sub2;;
 
 (*
-
 let tree1 = C { node = ("+",2); children = [V "y"; V "z"] }
 let sub1 = [("x", tree1)]
 let sub2 = [("y", V "a"); ("z", V "b")]
 
+let tree2 = C { node = ("*", 1); children = [V "x"; C { node = ("-", 3); children = [V "w"; V "x"] }] }
+let sub3 = [("x", V "c")]
+let expected_result1 = C { node = ("*", 1); children = [V "c"; C { node = ("-", 3); children = [V "w"; V "c"] }] }
 
-let composed_sub = compose_substitutions sub1 sub2;;
-let substituted_tree = subst tree1 sub2;;
+let tree3 = C { node = ("/", 4); children = [V "p"; V "q"] }
+let sub4 = [("m", V "n")]
+let expected_result2 = C { node = ("/", 4); children = [V "p"; V "q"] }
+
+let tree5 = C { node = ("^", 2); children = [V "a"; V "b"] }
+let sub7 = [("a", V "x")]
+let expected_result5 = C { node = ("^", 2); children = [V "x"; V "b"] }
+
+let composed_sub = compose_substitutions sub4 sub7;;
+let substituted_tree = subst tree5 sub7;;
 
 let () =
   print_endline "Composed Substitution:";
   List.iter (fun (var, _) -> print_endline var) composed_sub;;
 
-assert (composed_sub = [("x", C { node = ("+",2); children = [V "a"; V "b"] });("y", V "a"); ("z", V "b")]);;
-assert (substituted_tree = C { node = ("+",2); children = [V "a"; V "b"] });;
-
-
+assert (composed_sub = [("m", V "n");("a", V "x")]);;
+assert (substituted_tree = expected_result5);;
 *)
+
