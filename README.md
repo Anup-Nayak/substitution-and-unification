@@ -12,4 +12,4 @@ with suitable type representations for types symbol and signature.
   6. Define the function subst that given a tree t and a substitution s, applies (the Unique Homomorphic Extension of) s to t.  Ensure that subst is efficiently implemented.  (One version of subst has already been defined in class.)
   7. Define the function mgu that given two well formed trees (terms) t1 and t2, returns their most general unifier, if it exists and otherwise raises an exception NOT_UNIFIABLE.
   8. Provide at least 8 test cases to show that mgu works correctly, clearly showing that your examples cover all cases in the analysis.
-  9. Show that mgu (t, u) = mgu (mirror u, mirror t).
+
