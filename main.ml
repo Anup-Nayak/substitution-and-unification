@@ -7,30 +7,30 @@ type variable = string
 type tree = V of variable | C of { node: symbol ; children: tree list };;
 
 (*helper function1 that checks duplicates in signature*)
-let rec check_dup_symbols symbols_seen = function
+let rec duplicate_checking duplicate_symbol = function
     | [] -> true
     | (sym, _) :: t ->
-        if List.mem sym symbols_seen then
+        if List.mem sym duplicate_symbol then
             false
         else if sym = "" then
             false
         else
-            check_dup_symbols (sym :: symbols_seen) t;;
+            duplicate_checking (sym :: duplicate_symbol) t;;
 
 
 (*helper function2 that checks negative arities in signature*)
-let rec check_non_negative_arity = function
+let rec arity_checker = function
     | [] -> true
     | (_, arity) :: t ->
         if arity < 0 then
             false
         else
-            check_non_negative_arity t;;
+            arity_checker t;;
 
 
 
 let rec check_sig (sig_list : signature) : bool =
-    check_dup_symbols [] sig_list && check_non_negative_arity sig_list;;
+    duplicate_checking [] sig_list && arity_checker sig_list;;
 
 
 (*
@@ -121,7 +121,7 @@ let rec vars (t : tree) : variable list =
 
 
 (*
-let vars_set = vars times_one_x
+let vars_set = vars plus_timesonex_pluszeroy
 
 
 let () =
@@ -176,6 +176,20 @@ let rec compose_substitutions (sub1 : substitution) (sub2 : substitution) : subs
     | (var,tree1) :: rest -> 
         (var, subst tree1 sub2) :: compose_substitutions rest sub2;;
 
+let rec string_of_tree (t : tree) : string =
+  match t with
+  | V var -> var
+  | C { node = (symbol, arity); children } ->
+      let children_str = String.concat "; " (List.map string_of_tree children) in
+      Printf.sprintf "{ node = (%s, %d); children = [%s] }" symbol arity children_str
+
+
+let print_substitution (sub : substitution) : unit =
+  let print_pair (var, tree) =
+    Printf.printf "(%s, %s)\n" var (string_of_tree tree)
+  in
+  List.iter print_pair sub
+
 (*
 let tree1 = C { node = ("+",2); children = [V "y"; V "z"] }
 let sub1 = [("x", tree1)]
@@ -196,9 +210,7 @@ let expected_result5 = C { node = ("^", 2); children = [V "x"; V "b"] }
 let composed_sub = compose_substitutions sub4 sub7;;
 let substituted_tree = subst tree5 sub7;;
 
-let () =
-  print_endline "Composed Substitution:";
-  List.iter (fun (var, _) -> print_endline var) composed_sub;;
+print_substitution composed_sub;;
 
 assert (composed_sub = [("m", V "n");("a", V "x")]);;
 assert (substituted_tree = expected_result5);;
@@ -239,9 +251,10 @@ let rec mgu (t1: tree) (t2: tree): substitution =
   | _, _ -> raise NotUnifiable 
 
 
-(* TESTCASES CHECKED - i have covered all cases*)
+(* TESTCASES CHECKED - I have covered all cases*)
 
-(*
+
+
 
 let treee0 = V "x";;
 let treee1 = V "x";;
@@ -253,8 +266,11 @@ let treee6 = C { node = ("+",2); children = [C {node = ("*",1); children = [V "x
 let treee7 = C { node = ("*",2); children = [C {node = ("*",1); children = [V "x"]}] };;
 let treee8 = C { node = ("+",2); children = [V "w"; V "x"] };;
 
-let anss1 = mgu treee3 treee8;;
+let anss1 = mgu treee8 treee3;;
 
+print_substitution anss1;;
+
+(*
 let expected_resultt01 = [];;
 let expected_resultt12 = [("x" ,V "y")];;
 let expected_resultt24 = [("y" ,C { node = ("+",2); children = [V "x"] })];;
@@ -269,5 +285,6 @@ let expected_resultt38 = [("y" ,V "w");("z" ,V "x")];;
 assert (anss1 = expected_resultt38);;
 
 *)
+
 
 
