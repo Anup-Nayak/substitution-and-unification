@@ -2,7 +2,7 @@ open List;;
 
 type symbol = (string * int);;
 type signature = symbol list;;
-type variable = string
+type variable = string;;
 
 type tree = V of variable | C of { node: symbol ; children: tree list };;
 
@@ -217,7 +217,7 @@ assert (substituted_tree = expected_result5);;
 *)
 
 
-exception NotUnifiable
+exception NOT_UNIFIABLE
 
 let contains_variable (t : tree) (var : variable) : bool =
     let variable_list = vars t in
@@ -229,26 +229,26 @@ let rec mgu (t1: tree) (t2: tree): substitution =
   | V var1, V var2 -> [(var1, V var2)] 
   | V var1, C tree1 -> 
         if (contains_variable (C tree1) var1) then
-            raise NotUnifiable
+            raise NOT_UNIFIABLE
         else
             [(var1, C tree1)]
   | C tree1, V var1 -> 
         if (contains_variable (C tree1) var1) then
-            raise NotUnifiable
+            raise NOT_UNIFIABLE
         else
             [(var1, C tree1)]
   | C { node = node1; children = children1 }, C { node = node2; children = children2 } when node1 = node2 ->
       let rec unify_children children1 children2 acc =
         match children1, children2 with
         | [], [] -> acc
-        | [], _ | _, [] -> raise NotUnifiable
+        | [], _ | _, [] -> raise NOT_UNIFIABLE
         | child1 :: rest1, child2 :: rest2 ->
             let substitution = mgu child1 child2 in
             let composed_sub = compose_substitutions acc substitution in
             unify_children rest1 rest2 composed_sub
       in
       unify_children children1 children2 []
-  | _, _ -> raise NotUnifiable 
+  | _, _ -> raise NOT_UNIFIABLE
 
 
 (* TESTCASES CHECKED - I have covered all cases*)
