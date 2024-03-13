@@ -2,8 +2,9 @@ open List;;
 
 type symbol = (string * int);;
 type signature = symbol list;;
+type variable = string
 
-type tree = V of string | C of { node: symbol ; children: tree list };;
+type tree = V of variable | C of { node: symbol ; children: tree list };;
 
 (*helper function1 that checks duplicates in signature*)
 let rec check_dup_symbols symbols_seen = function
@@ -108,7 +109,7 @@ let rec size t = match t with
 
 (*print_endline(string_of_int(size plus_timesonex_pluszeroy));;*)
 
-type variable = string
+
 
 let rec vars (t : tree) : variable list =
   let rec collect_vars acc = function
@@ -117,6 +118,7 @@ let rec vars (t : tree) : variable list =
         List.fold_left (fun acc child -> collect_vars acc child) acc children
   in
   collect_vars [] t
+
 
 (*
 let vars_set = vars times_one_x
@@ -143,5 +145,53 @@ let vars_set = vars (mirror plus_timesonex_z)
 let () =
   print_endline "Variables in the tree:";
   List.iter (fun var -> print_endline var) vars_set
+
+*)
+
+type substitution = (variable * tree) list
+
+let rec has_duplicates = function
+  | [] -> false
+  | x :: xs -> List.exists (fun y -> x = y) xs || has_duplicates xs
+
+let valid_substitution (sub : substitution) : bool =
+  not (has_duplicates (List.map fst sub))
+
+let rec subst (t : tree) (sub : substitution) : tree =
+  let apply_sub sub var =
+    match List.assoc_opt var sub with
+    | None -> V var  
+    | Some tree -> tree
+  in
+  match t with
+  | V var -> apply_sub sub var  
+  | C { node; children } -> 
+      let substituted_children = List.map (fun child -> subst child sub) children in
+      C { node; children = substituted_children }
+
+
+let rec compose_substitutions (sub1 : substitution) (sub2 : substitution) : substitution =
+    match sub1 with 
+    | [] -> sub2
+    | (var,tree1) :: rest -> 
+        (var, subst tree1 sub2) :: compose_substitutions rest sub2;;
+
+(*
+
+let tree1 = C { node = ("+",2); children = [V "y"; V "z"] }
+let sub1 = [("x", tree1)]
+let sub2 = [("y", V "a"); ("z", V "b")]
+
+
+let composed_sub = compose_substitutions sub1 sub2;;
+let substituted_tree = subst tree1 sub2;;
+
+let () =
+  print_endline "Composed Substitution:";
+  List.iter (fun (var, _) -> print_endline var) composed_sub;;
+
+assert (composed_sub = [("x", C { node = ("+",2); children = [V "a"; V "b"] });("y", V "a"); ("z", V "b")]);;
+assert (substituted_tree = C { node = ("+",2); children = [V "a"; V "b"] });;
+
 
 *)
