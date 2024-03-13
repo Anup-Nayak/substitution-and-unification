@@ -204,3 +204,70 @@ assert (composed_sub = [("m", V "n");("a", V "x")]);;
 assert (substituted_tree = expected_result5);;
 *)
 
+
+exception NotUnifiable
+
+let contains_variable (t : tree) (var : variable) : bool =
+    let variable_list = vars t in
+    List.mem var variable_list
+
+let rec mgu (t1: tree) (t2: tree): substitution =
+  match t1, t2 with
+  | V var1, V var2 when var1 = var2 -> [] 
+  | V var1, V var2 -> [(var1, V var2)] 
+  | V var1, C tree1 -> 
+        if (contains_variable (C tree1) var1) then
+            raise NotUnifiable
+        else
+            [(var1, C tree1)]
+  | C tree1, V var1 -> 
+        if (contains_variable (C tree1) var1) then
+            raise NotUnifiable
+        else
+            [(var1, C tree1)]
+  | C { node = node1; children = children1 }, C { node = node2; children = children2 } when node1 = node2 ->
+      let rec unify_children children1 children2 acc =
+        match children1, children2 with
+        | [], [] -> acc
+        | [], _ | _, [] -> raise NotUnifiable
+        | child1 :: rest1, child2 :: rest2 ->
+            let substitution = mgu child1 child2 in
+            let composed_sub = compose_substitutions acc substitution in
+            unify_children rest1 rest2 composed_sub
+      in
+      unify_children children1 children2 []
+  | _, _ -> raise NotUnifiable 
+
+
+(* TESTCASES CHECKED - i have covered all cases*)
+
+(*
+
+let treee0 = V "x";;
+let treee1 = V "x";;
+let treee2 = V "y";;
+let treee3 = C { node = ("+",2); children = [V "y"; V "z"] };;
+let treee4 = C { node = ("+",2); children = [V "x"] };;
+let treee5 = C { node = ("+",2); children = [C {node = ("*",1); children = [V "y"]}] };;
+let treee6 = C { node = ("+",2); children = [C {node = ("*",1); children = [V "x"]}] };;
+let treee7 = C { node = ("*",2); children = [C {node = ("*",1); children = [V "x"]}] };;
+let treee8 = C { node = ("+",2); children = [V "w"; V "x"] };;
+
+let anss1 = mgu treee3 treee8;;
+
+let expected_resultt01 = [];;
+let expected_resultt12 = [("x" ,V "y")];;
+let expected_resultt24 = [("y" ,C { node = ("+",2); children = [V "x"] })];;
+let expected_resultt23 = NotUnifiable;;
+let expected_resultt34 = NotUnifiable;;
+let expected_resultt45 = [("x" , C {node = ("*",1); children = [V "y"]})];;
+let expected_resultt46 = NotUnifiable;;
+let expected_resultt23 = [("x" , C { node = ("+",2); children = [V "y"; V "z"] })];;
+let expected_resultt67 = NotUnifiable;;
+let expected_resultt38 = [("y" ,V "w");("z" ,V "x")];;
+
+assert (anss1 = expected_resultt38);;
+
+*)
+
+
